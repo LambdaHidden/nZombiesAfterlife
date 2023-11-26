@@ -1,0 +1,1 @@
+nzAfterlife = nzAfterlife or AddNZModule("Afterlife")
