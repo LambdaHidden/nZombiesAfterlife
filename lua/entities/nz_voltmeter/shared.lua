@@ -3,14 +3,17 @@ ENT.Type = "anim"
 
 ENT.PrintName		= "Voltmeter"
 --ENT.Editable		= true
-
+--[[
 ENT.ValidInputs = {
 	TurnOn = true,
 	TurnOff = true,
 	OpenDoorLink = true,
 	CloseDoorLink = true,
+	ActivateInRadius = true,
+	DeactivateInRadius = true,
+	AddOutput = true,
 	Kill = true
-}
+}]]
 ENT.Outputs = {}
 function ENT:GetOutputs()
 	return self.Outputs
@@ -32,9 +35,9 @@ function ENT:Initialize()
 end
 
 function ENT:AcceptInput(inputName, activator, caller, data)
-	if self.ValidInputs[inputName] then
+	if self[inputName] then
 		self[inputName](self, activator, data)
-	elseif ( string.Left( inputName, 8 ) == "FireUser" ) then
+	elseif (string.Left( inputName, 8 ) == "FireUser") then
 		self:TriggerOutput("OnUser"..string.Right(inputName, 1))
 	end
 end
@@ -43,6 +46,12 @@ function ENT:KeyValue(k, v)
 		self:StoreOutput(k, v)
 		table.insert(self.Outputs, {key = k, value = v})
 	end
+end
+function ENT:AddOutput(input)
+	local args = string.Split(input, " ")
+
+	self:StoreOutput(args[1], args[2])
+	table.insert(self.Outputs, {key = args[1], value = args[2]})
 end
 
 
@@ -83,6 +92,28 @@ end
 function ENT:CloseDoorLink(activator, link)
 	nzDoors:CloseLinkedDoors(link, activator)
 end
+
+function ENT:ActivateInRadius(activator, radius)
+	for k, v in ipairs(ents.FindInSphere(self:GetPos(), tonumber(radius))) do
+		local data = v:GetDoorData()
+		if data and data.link then
+			nzDoors:OpenLinkedDoors(data.link, activator)
+		elseif v.TurnOn then
+			v:TurnOn()
+		end
+	end
+end
+function ENT:DeactivateInRadius(activator, radius)
+	for k, v in ipairs(ents.FindInSphere(self:GetPos(), tonumber(radius))) do
+		local data = v:GetDoorData()
+		if data and data.link then
+			nzDoors:CloseLinkedDoors(data.link, activator)
+		elseif v.TurnOff then
+			v:TurnOff()
+		end
+	end
+end
+
 
 function ENT:Kill()
 	SafeRemoveEntity(self)
