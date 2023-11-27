@@ -1,3 +1,21 @@
+if !nzMapping then
+	local mappingfiles,_ = file.Find("nzombies/gamemode/mapping/*", "LUA")
+	
+	for k, v in pairs(mappingfiles) do
+		local sep = string.Explode("_", v)
+		if sep[1] == "sh" then
+			if SERVER then
+				AddCSLuaFile("nzombies/gamemode/mapping/"..v)
+				include("nzombies/gamemode/mapping/"..v)
+			else
+				include("nzombies/gamemode/mapping/"..v)
+			end
+		elseif sep[1] == "sv" then
+			if SERVER then include("nzombies/gamemode/mapping/"..v) end
+		end
+	end
+end
+
 nzMapping:AddSaveModule("Voltmeters", {
 	savefunc = function()
 		local voltmeter = {}
@@ -67,4 +85,42 @@ nzMapping:AddSaveModule("AFSwitchboxes", {
 		end
 	end,
 	cleanents = {"nz_afterlife_switchbox"}
+})
+function nzMapping:AFSwitchbox(pos, ang, ply)
+
+	local entry = ents.Create("nz_afterlife_switchbox")
+	entry:SetPos(pos)
+	entry:SetAngles(ang)
+	entry:Spawn()
+	entry:PhysicsInit(SOLID_VPHYSICS)
+
+	local phys = entry:GetPhysicsObject()
+	if phys:IsValid() then
+		phys:EnableMotion(false)
+	end
+
+	if ply then
+		undo.Create("Afterlife Switchbox")
+			undo.SetPlayer(ply)
+			undo.AddEntity(entry)
+		undo.Finish("Effect (" .. tostring( model ) .. ")")
+	end
+	return entry
+end
+
+nzMapping:AddSaveModule("AfterlifeSettings", {
+	savefunc = function()
+		local AfterlifeData = {
+			enabled = nzAfterlife.Enabled,
+			maxsingle = nzAfterlife.MaxLives.Singleplayer,
+			maxmulti = nzAfterlife.MaxLives.Multiplayer
+		}
+		return AfterlifeData
+	end,
+	loadfunc = function(data)
+		nzAfterlife.Enabled = tobool(data.enabled)
+		nzAfterlife:Toggle(nzAfterlife.Enabled)
+		
+		nzAfterlife:ChangeMaxLives(data.maxsingle, data.maxmulti)
+	end,
 })
