@@ -37,7 +37,7 @@ end
 function ENT:AcceptInput(inputName, activator, caller, data)
 	if self[inputName] then
 		self[inputName](self, activator, data)
-	elseif (string.Left( inputName, 8 ) == "FireUser") then
+	elseif (string.Left(inputName, 8) == "FireUser") then
 		self:TriggerOutput("OnUser"..string.Right(inputName, 1))
 	end
 end

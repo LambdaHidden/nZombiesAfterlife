@@ -153,7 +153,7 @@ hook.Add("EntityKeyValue", "AfterlifeVisibilityPrecache", function(ent, k, v)
 	end
 end)
 
-hook.Add("InitPostEntity", "AfterlifeSyncVisEnts", function()
+hook.Add("InitPostEntity", "World_AfterlifeSyncVisEnts", function()
 	if SERVER then
 		for key, value in pairs(AfterlifeVisEnts) do
 			net.Start("AfterlifeVis")
@@ -164,8 +164,7 @@ hook.Add("InitPostEntity", "AfterlifeSyncVisEnts", function()
 	end
 end)
 
-hook.Add("PlayerInitialSpawn", "AfterlifeSyncVisEnts", function(ply, transition)
-	ply:SetAfterlives(0)
+hook.Add("PlayerInitialSpawn", "Player_AfterlifeSyncVisEnts", function(ply, transition)
 	for key, value in pairs(AfterlifeVisEnts) do
 		net.Start("AfterlifeVis")
 			net.WriteUInt(key, 14)
@@ -174,7 +173,7 @@ hook.Add("PlayerInitialSpawn", "AfterlifeSyncVisEnts", function(ply, transition)
 	end
 end)
 
-hook.Add("NotifyShouldTransmit", "AfterlifeSyncVisEnts1", function(entity, shouldtransmit)
+hook.Add("NotifyShouldTransmit", "AfterlifeSyncVisEnts", function(entity, shouldtransmit)
 	if AfterlifeVisEnts[entity:EntIndex()] then
 		local determiner = AfterlifeVisEnts[entity:EntIndex()]
 		
