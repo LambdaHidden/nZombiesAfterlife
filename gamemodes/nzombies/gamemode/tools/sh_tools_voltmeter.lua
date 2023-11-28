@@ -12,7 +12,7 @@ nzTools:CreateTool("voltmeter", {
 			ent = nzMapping:Voltmeter(tr.HitPos, Angle(0,(tr.HitPos - ply:GetPos()):Angle()[2],0)+Angle(0,180,0), data.targetname, data.outputs, ply)
 		end
 		
-		ent:SetName = data.targetname
+		ent:SetName(data.targetname)
 		ent:ClearAllOutputs()
 		for k, v in pairs(data.outputs) do
 			ent:StoreOutput(v.key, v.value)
@@ -43,23 +43,121 @@ nzTools:CreateTool("voltmeter", {
 	end,
 	interface = function(frame, data)
 		local valz = {}
-		valz["Row1"] = data.targetname
-		valz["Row2"] = data.outputs
+		valz["Name"] = data.targetname
+		valz["Outputs"] = data.outputs
+		
+		local sheet = vgui.Create( "DPanel", frame )
+		sheet:SetSize( frame:GetSize() )
+		sheet:SetPos( 0, 0 )
 
-		local DProperties = vgui.Create( "DProperties", frame )
-		DProperties:SetSize( 280, 180 )
+		local DProperties = vgui.Create( "DProperties", sheet )
+		DProperties:SetSize( 280, 64 )
 		DProperties:SetPos( 10, 10 )
 		
-		function DProperties.CompileData()
-			local str="0"
-			if valz["Row1"] == 0 then
-				str=0
-				data.flag = false
-			else
-				str=valz["Row2"]
-				data.flag = true
+		local Row1 = DProperties:CreateRow( "Voltmeter Placer", "Name" )
+		Row1:Setup( "Generic" )
+		Row1:SetValue( valz["Name"] )
+		Row1.DataChanged = function( _, val ) valz["Name"] = val DProperties.UpdateData(DProperties.CompileData()) end
+		
+		local outlabel = vgui.Create( "DLabel", sheet )
+		outlabel:SetTextColor(color_black)
+		outlabel:SetFont("Trebuchet18")
+		outlabel:SetSize(96, 24)
+		outlabel:SetPos(122, 52)
+		outlabel:SetText("Outputs")
+		
+		
+		
+		local outputlist = vgui.Create("DScrollPanel", sheet)
+		outputlist:SetPos(10, 72)
+		outputlist:SetSize(280, 160)
+		outputlist:SetPaintBackground(true)
+		outputlist:SetBackgroundColor( Color(200, 200, 200) )
+		
+		local Host = vgui.Create( "DProperties", outputlist )
+		Host:SetSize( 276, 158 )
+		Host:SetPos( 2, 2 )
+		
+		
+		local outputlistactual = {}
+		
+		local function RefreshOutputList(data)
+			for k, v in pairs(Host:GetChildren()) do
+				v:Remove()
 			end
-			data.link = str
+			for k, v in pairs(outputlistactual) do
+				local name = Host:CreateRow( "Output "..k, "Event" )
+				name.host = k
+				name:Setup( "Combo" )
+				name:AddChoice( "OnActivate", "OnActivate" )
+				name:AddChoice( "OnDeactivate", "OnDeactivate" )
+				name:SetValue(v.name)
+				name.DataChanged = function( _, val ) v.name = val end
+				
+				local target = Host:CreateRow( "Output "..k, "Target" )
+				target.host = k
+				target:Setup( "Generic" )
+				target:SetValue(v.target)
+				target.DataChanged = function( _, val ) v.target = val end
+				
+				local action = Host:CreateRow( "Output "..k, "Action" )
+				action.host = k
+				action:Setup( "Generic" )
+				action:SetValue(v.action)
+				action.DataChanged = function( _, val ) v.action = val end
+				
+				local parameter = Host:CreateRow( "Output "..k, "Parameter" )
+				parameter.host = k
+				parameter:Setup( "Generic" )
+				parameter:SetValue(v.parameter)
+				parameter.DataChanged = function( _, val ) v.parameter = val end
+				
+				local delay = Host:CreateRow( "Output "..k, "Delay" )
+				delay.host = k
+				delay:Setup( "Float" )
+				delay:SetValue(0)
+				delay:SetValue(v.delay)
+				delay.DataChanged = function( _, val ) v.delay = val end
+				
+				local refires = Host:CreateRow( "Output "..k, "Refires" )
+				refires.host = k
+				refires:Setup( "Int" )
+				refires:SetValue(-1)
+				refires:SetValue(v.refires)
+				refires.DataChanged = function( _, val ) v.refires = val end
+				
+				local delete = Host:CreateRow( "Output "..k, "Delete" )
+				delete:Setup( "Generic" )
+				
+				local delete1 = vgui.Create( "DButton", delete )
+				delete1.host = k
+				delete1:SetText( "Delete" )
+				delete1:SetPos( 120, 2 )
+				delete1:SetSize( 48, 16 )
+				delete1.DoClick = function()
+					if table.Count(outputlistactual) == 1 then return end
+					table.remove(outputlistactual, delete1.host)
+					RefreshOutputList()
+				end
+			end
+		end
+		
+		
+		local add = vgui.Create( "DButton", sheet )
+		add:SetText( "Add" )
+		add:SetPos( 120, 240 )
+		add:SetSize( 50, 20 )
+		add.DoClick = function()
+			table.insert(outputlistactual, {name = "", target = "", action = "", parameter = "", delay = 0, refires = -1})
+			RefreshOutputList()
+		end
+		
+		add:DoClick()
+		
+		
+		function DProperties.CompileData()
+			data.targetname = valz["Name"]
+			data.outputs = valz["Outputs"]
 			
 			return data
 		end
@@ -67,41 +165,8 @@ nzTools:CreateTool("voltmeter", {
 		function DProperties.UpdateData(data)
 			nzTools:SendData(data, "voltmeter")
 		end
-
-		local Row1 = DProperties:CreateRow( "Voltmeter Placer", "Enable Flag for Doors?" )
-		Row1:Setup( "Boolean" )
-		Row1:SetValue( valz["Row1"] )
-		Row1.DataChanged = function( _, val ) valz["Row1"] = val DProperties.UpdateData(DProperties.CompileData()) end
-		local Row2 = DProperties:CreateRow( "Voltmeter Placer", "Flag" )
-		Row2:Setup( "Integer" )
-		Row2:SetValue( valz["Row2"] )
-		Row2.DataChanged = function( _, val ) valz["Row2"] = val DProperties.UpdateData(DProperties.CompileData()) end
 		
-		local text1 = vgui.Create("DLabel", DProperties)
-		text1:SetText("Will power linked door or nearby perk when shocked.")
-		text1:SetFont("Trebuchet18")
-		text1:SetTextColor( Color(50, 50, 50) )
-		text1:SizeToContents()
-		text1:SetPos(0, 90)
-		text1:CenterHorizontal()
-		
-		local text3 = vgui.Create("DLabel", DProperties)
-		text3:SetText("You still need to place a power switch.")
-		text3:SetFont("Trebuchet18")
-		text3:SetTextColor( Color(200, 50, 50) )
-		text3:SizeToContents()
-		text3:SetPos(0, 120)
-		text3:CenterHorizontal()
-		
-		local text4 = vgui.Create("DLabel", DProperties)
-		text4:SetText("Otherwise, everything will start powered on.")
-		text4:SetFont("Trebuchet18")
-		text4:SetTextColor( Color(200, 50, 50) )
-		text4:SizeToContents()
-		text4:SetPos(0, 135)
-		text4:CenterHorizontal()
-		
-		return DProperties
+		return sheet
 	end,
 	defaultdata = {
 		targetname = "",
