@@ -77,6 +77,7 @@ nzTools:CreateTool("voltmeter", {
 		Row1.DataChanged = function( _, val )
 			valz["Name"] = val
 			data.targetname = val
+			DProperties.UpdateData()
 		end
 		
 		local outlabel = vgui.Create( "DLabel", sheet )
@@ -98,14 +99,19 @@ nzTools:CreateTool("voltmeter", {
 		Host:SetSize( 276, 158 )
 		Host:SetPos( 2, 2 )
 		
+		local hostcontainer = {}
 		
 		local function RefreshOutputList()
-			for k, v in pairs(Host:GetChildren()) do
-				v:Remove()
-			end
+			if hostcontainer[1] then hostcontainer[1]:Remove() end
+			table.Empty(hostcontainer)
+			
+			local Host = vgui.Create( "DProperties", outputlist )
+			Host:SetSize( 276, 158 )
+			Host:SetPos( 2, 2 )
+			table.insert(hostcontainer, Host)
+			
 			for k, v in pairs(valz["Outputs"]) do
 				local name = Host:CreateRow( "Output "..k, "Event" )
-				name.host = k
 				name:Setup( "Combo" )
 				name:AddChoice( "OnActivate", "OnActivate" )
 				name:AddChoice( "OnDeactivate", "OnDeactivate" )
@@ -116,7 +122,6 @@ nzTools:CreateTool("voltmeter", {
 				end
 				
 				local target = Host:CreateRow( "Output "..k, "Target" )
-				target.host = k
 				target:Setup( "Generic" )
 				target:SetValue(v.target)
 				target.DataChanged = function( _, val ) 
@@ -125,7 +130,6 @@ nzTools:CreateTool("voltmeter", {
 				end
 				
 				local action = Host:CreateRow( "Output "..k, "Action" )
-				action.host = k
 				action:Setup( "Generic" )
 				action:SetValue(v.action)
 				action.DataChanged = function( _, val ) 
@@ -134,7 +138,6 @@ nzTools:CreateTool("voltmeter", {
 				end
 				
 				local parameter = Host:CreateRow( "Output "..k, "Parameter" )
-				parameter.host = k
 				parameter:Setup( "Generic" )
 				parameter:SetValue(v.parameter)
 				parameter.DataChanged = function( _, val ) 
@@ -143,8 +146,7 @@ nzTools:CreateTool("voltmeter", {
 				end
 				
 				local delay = Host:CreateRow( "Output "..k, "Delay" )
-				delay.host = k
-				delay:Setup( "Float" )
+				delay:Setup( "Float", { min = 0, max = 60 } )
 				delay:SetValue(0)
 				delay:SetValue(v.delay)
 				delay.DataChanged = function( _, val ) 
@@ -153,8 +155,7 @@ nzTools:CreateTool("voltmeter", {
 				end
 				
 				local refires = Host:CreateRow( "Output "..k, "Refires" )
-				refires.host = k
-				refires:Setup( "Int" )
+				refires:Setup( "Int", { min = -1, max = 10 } )
 				refires:SetValue(-1)
 				refires:SetValue(v.refires)
 				refires.DataChanged = function( _, val ) 
@@ -180,15 +181,7 @@ nzTools:CreateTool("voltmeter", {
 		end
 		
 		RefreshOutputList()
-		--[[
-		local submit = vgui.Create( "DButton", sheet )
-		submit:SetText( "Submit" )
-		submit:SetPos( 200, 240 )
-		submit:SetSize( 50, 20 )
-		submit.DoClick = function()
-			DProperties.UpdateData(data)
-		end
-		]]
+		
 		local add = vgui.Create( "DButton", sheet )
 		add:SetText( "Add" )
 		add:SetPos( 120, 240 )
