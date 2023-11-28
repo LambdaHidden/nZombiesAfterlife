@@ -5,18 +5,34 @@ nzTools:CreateTool("voltmeter", {
 		return true
 	end,
 	PrimaryAttack = function(wep, ply, tr, data)
-		local ent
-		if IsValid(tr.Entity) and tr.Entity:GetClass() == "nz_voltmeter" then
-			ent = tr.Entity
-		else
-			ent = nzMapping:Voltmeter(tr.HitPos, Angle(0,(tr.HitPos - ply:GetPos()):Angle()[2],0)+Angle(0,180,0), data.targetname, data.outputs, ply)
-		end
-		
-		ent:SetName(data.targetname)
-		ent:ClearAllOutputs()
+		local actualoutputs = {}
 		for k, v in pairs(data.outputs) do
-			ent:StoreOutput(v.key, v.value)
-			table.insert(ent.Outputs, v)
+			local orderedoutputs = {
+				v.target,
+				v.action,
+				v.parameter,
+				v.delay,
+				v.refires
+			}
+			
+			local name = v.name
+			PrintTable(orderedoutputs)
+			local concat = table.concat(orderedoutputs, ":")
+			print(concat)
+			table.insert(actualoutputs, {key = name, value = concat})
+		end
+	
+		if IsValid(tr.Entity) and tr.Entity:GetClass() == "nz_voltmeter" then
+			tr.Entity:SetName(data.targetname)
+			tr.Entity:ClearAllOutputs()
+			
+			for k, v in pairs(actualoutputs) do
+				--tr.Entity:StoreOutput(v.key, v.value)
+				--table.insert(tr.Entity.Outputs, v)
+				tr.Entity:SetKeyValue(v.key, v.value)
+			end
+		else
+			ent = nzMapping:Voltmeter(tr.HitPos, Angle(0,(tr.HitPos - ply:GetPos()):Angle()[2],0)+Angle(0,180,0), data.targetname, actualoutputs, ply)
 		end
 	end,
 	SecondaryAttack = function(wep, ply, tr, data)
@@ -57,7 +73,10 @@ nzTools:CreateTool("voltmeter", {
 		local Row1 = DProperties:CreateRow( "Voltmeter Placer", "Name" )
 		Row1:Setup( "Generic" )
 		Row1:SetValue( valz["Name"] )
-		Row1.DataChanged = function( _, val ) valz["Name"] = val DProperties.UpdateData(DProperties.CompileData()) end
+		Row1.DataChanged = function( _, val )
+			valz["Name"] = val
+			data.targetname = val
+		end
 		
 		local outlabel = vgui.Create( "DLabel", sheet )
 		outlabel:SetTextColor(color_black)
@@ -79,13 +98,11 @@ nzTools:CreateTool("voltmeter", {
 		Host:SetPos( 2, 2 )
 		
 		
-		local outputlistactual = {}
-		
-		local function RefreshOutputList(data)
+		local function RefreshOutputList()
 			for k, v in pairs(Host:GetChildren()) do
 				v:Remove()
 			end
-			for k, v in pairs(outputlistactual) do
+			for k, v in pairs(valz["Outputs"]) do
 				local name = Host:CreateRow( "Output "..k, "Event" )
 				name.host = k
 				name:Setup( "Combo" )
@@ -135,34 +152,37 @@ nzTools:CreateTool("voltmeter", {
 				delete1:SetPos( 120, 2 )
 				delete1:SetSize( 48, 16 )
 				delete1.DoClick = function()
-					if table.Count(outputlistactual) == 1 then return end
-					table.remove(outputlistactual, delete1.host)
+					if table.Count(valz["Outputs"]) == 1 then return end
+					table.remove(valz["Outputs"], delete1.host)
 					RefreshOutputList()
 				end
 			end
 		end
 		
-		
+		RefreshOutputList()
+		--[[
+		local submit = vgui.Create( "DButton", sheet )
+		submit:SetText( "Submit" )
+		submit:SetPos( 200, 240 )
+		submit:SetSize( 50, 20 )
+		submit.DoClick = function()
+			DProperties.UpdateData(data)
+		end
+		]]
 		local add = vgui.Create( "DButton", sheet )
 		add:SetText( "Add" )
 		add:SetPos( 120, 240 )
 		add:SetSize( 50, 20 )
 		add.DoClick = function()
-			table.insert(outputlistactual, {name = "", target = "", action = "", parameter = "", delay = 0, refires = -1})
+			table.insert(valz["Outputs"], {name = "", target = "", action = "", parameter = "", delay = 0, refires = -1})
 			RefreshOutputList()
 		end
 		
-		add:DoClick()
-		
-		
-		function DProperties.CompileData()
-			data.targetname = valz["Name"]
-			data.outputs = valz["Outputs"]
-			
-			return data
+		if table.IsEmpty(valz["Outputs"]) then
+			add:DoClick()
 		end
 		
-		function DProperties.UpdateData(data)
+		function DProperties.UpdateData()
 			nzTools:SendData(data, "voltmeter")
 		end
 		
