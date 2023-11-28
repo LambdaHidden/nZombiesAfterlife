@@ -70,14 +70,11 @@ nzTools:CreateTool("afterlife", {
 		Row3:SetValue( valz["Row3"] )
 		Row3.DataChanged = function( _, val ) valz["Row3"] = val end
 		
-		local function UpdateData() -- Will remain a local function here. There is no need for the context menu to intercept
-			net.Start("nzAfterlifeEnabled")
+		local function UpdateData() -- Will remain a local function here. There is no need for the context menu to intercept.
+			net.Start("nzAfterlifeUpdateSettings")
 				net.WriteBool(valz["Row1"] > 0)
-			net.SendToServer()
-			
-			net.Start("nzAfterlifeUpdateLimits")
-				net.WriteUInt(math.Round(valz["Row2"]), 32)
-				net.WriteUInt(math.Round(valz["Row3"]), 32)
+				net.WriteUInt(math.Round(valz["Row2"]), 15)
+				net.WriteUInt(math.Round(valz["Row3"]), 16)
 			net.SendToServer()
 		end
 
