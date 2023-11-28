@@ -6,14 +6,14 @@ if SERVER then
 		local single = net.ReadUInt(15)
 		local multi = net.ReadUInt(16)
 		if nzRound:InState(ROUND_CREATE) then
-			nzAfterlife:UpdateSettingsServerside(onoff, single, multi)
+			nzAfterlife:UpdateSettings(onoff, single, multi)
 			MsgN(tostring(ply).." changed Afterlife settings: "..(onoff and "Enabled, " or "Disabled, ")..single.." for singleplayer, "..multi.." for multiplayer.")
 		else
 			MsgN(tostring(ply).." tried to change Afterlife settings, but we're not in Creative Mode.")
 		end
 	end)
 	
-	function nzAfterlife:UpdateSettingsServerside(onoff single, multi)
+	function nzAfterlife:UpdateSettings(onoff, single, multi)
 		nzAfterlife.Enabled = onoff
 		nzAfterlife.MaxLives.Singleplayer = single
 		nzAfterlife.MaxLives.Multiplayer = multi

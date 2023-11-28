@@ -119,9 +119,6 @@ nzMapping:AddSaveModule("AfterlifeSettings", {
 		return AfterlifeData
 	end,
 	loadfunc = function(data)
-		nzAfterlife.Enabled = tobool(data.enabled)
-		nzAfterlife:Toggle(nzAfterlife.Enabled)
-		
-		nzAfterlife:ChangeMaxLives(data.maxsingle, data.maxmulti)
+		nzAfterlife:UpdateSettings(data.enabled, data.maxsingle, data.maxmulti)
 	end,
 })
