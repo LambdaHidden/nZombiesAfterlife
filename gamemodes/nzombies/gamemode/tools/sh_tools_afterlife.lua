@@ -34,7 +34,6 @@ nzTools:CreateTool("afterlife", {
 		return true
 	end,
 	interface = function(frame, data)
-		--local data = table.Copy(nzMapping.Settings)
 		local valz = {}
 		valz["Row1"] = tonumber(data.EnableAfterlife)
 		valz["Row2"] = tonumber(data.MaxLivesSingle)
@@ -61,20 +60,20 @@ nzTools:CreateTool("afterlife", {
 		Row1.DataChanged = function( _, val ) valz["Row1"] = val end
 		
 		local Row2 = DProperties:CreateRow( "Afterlife", "Max singleplayer lives" )
-		Row2:Setup( "Int", { min = 0, max = 10 } )
+		Row2:Setup( "Int", { min = 0, max = 255 } )
 		Row2:SetValue( valz["Row2"] )
 		Row2.DataChanged = function( _, val ) valz["Row2"] = val end
 		
 		local Row3 = DProperties:CreateRow( "Afterlife", "Max multiplayer lives" )
-		Row3:Setup( "Int", { min = 0, max = 10 } )
+		Row3:Setup( "Int", { min = 0, max = 127 } )
 		Row3:SetValue( valz["Row3"] )
 		Row3.DataChanged = function( _, val ) valz["Row3"] = val end
 		
 		local function UpdateData() -- Will remain a local function here. There is no need for the context menu to intercept.
 			net.Start("nzAfterlifeUpdateSettings")
 				net.WriteBool(valz["Row1"] > 0)
-				net.WriteUInt(math.Round(valz["Row2"]), 15)
-				net.WriteUInt(math.Round(valz["Row3"]), 16)
+				net.WriteUInt(math.Round(valz["Row2"]), 8)
+				net.WriteUInt(math.Round(valz["Row3"]), 7)
 			net.SendToServer()
 		end
 

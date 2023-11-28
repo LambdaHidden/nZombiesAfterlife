@@ -3,8 +3,8 @@ if SERVER then
 	
 	net.Receive("nzAfterlifeUpdateSettings", function(length, ply)
 		local onoff = net.ReadBool()
-		local single = net.ReadUInt(15)
-		local multi = net.ReadUInt(16)
+		local single = net.ReadUInt(8)
+		local multi = net.ReadUInt(7)
 		if nzRound:InState(ROUND_CREATE) then
 			nzAfterlife:UpdateSettings(onoff, single, multi)
 			MsgN(tostring(ply).." changed Afterlife settings: "..(onoff and "Enabled, " or "Disabled, ")..single.." for singleplayer, "..multi.." for multiplayer.")
@@ -20,17 +20,25 @@ if SERVER then
 	
 		net.Start("nzAfterlifeUpdateSettings")
 			net.WriteBool(onoff)
-			net.WriteUInt(single, 16)
-			net.WriteUInt(multi, 16)
+			net.WriteUInt(single, 8)
+			net.WriteUInt(multi, 7)
 		net.Broadcast()
 	end
+	
+	hook.Add("PlayerInitialSpawn", "AfterlifeSyncNewPlayers" function(ply, transition)
+		net.Start("nzAfterlifeUpdateSettings")
+			net.WriteBool(nzAfterlife.Enabled)
+			net.WriteUInt(nzAfterlife.MaxLives.Singleplayer, 8)
+			net.WriteUInt(nzAfterlife.MaxLives.Multiplayer, 7)
+		net.Send(ply)
+	end)
 end
 
 if CLIENT then
 	local function UpdateSettingsClientside(length)
 		nzAfterlife.Enabled = net.ReadBool()
-		nzAfterlife.MaxLives.Singleplayer = net.ReadUInt(15)
-		nzAfterlife.MaxLives.Multiplayer = net.ReadUInt(16)
+		nzAfterlife.MaxLives.Singleplayer = net.ReadUInt(8)
+		nzAfterlife.MaxLives.Multiplayer = net.ReadUInt(7)
 	end
 	net.Receive("nzAfterlifeUpdateSettings", UpdateSettingsClientside)
 end
