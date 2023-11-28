@@ -1,4 +1,4 @@
-if !nzMapping then
+if !nzMapping then -- Load nzMapping if it wasn't yet, because everything here is built on top of that.
 	local mappingfiles,_ = file.Find("nzombies/gamemode/mapping/*", "LUA")
 	
 	for k, v in pairs(mappingfiles) do
@@ -50,8 +50,9 @@ function nzMapping:Voltmeter(pos, ang, name, outputs, ply)
 	entry:PhysicsInit(SOLID_VPHYSICS)
 	entry:SetName(name)
 	for k, v in pairs(outputs) do
-		entry:StoreOutput(v.key, v.value)
-		table.insert(entry.Outputs, v)
+		--entry:StoreOutput(v.key, v.value)
+		--table.insert(entry.Outputs, v)
+		entry:SetKeyValue(v.key, v.value)
 	end
 
 	local phys = entry:GetPhysicsObject()
