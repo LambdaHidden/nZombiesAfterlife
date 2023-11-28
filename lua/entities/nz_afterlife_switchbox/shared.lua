@@ -19,8 +19,7 @@ function ENT:Initialize()
 end
 
 function ENT:Use(activator, caller)
-	--if activator:GetAfterlives() <= 0 or activator:GetInAfterlife() then return end
-	if activator:GetNW2Int("Afterlives") <= 0 then
+	if activator:GetNW2Int("Afterlives") > 0 and !activator:GetNW2Bool("IsInAfterlife") then
 		if gamemode then
 			local DownPoints = math.Round(activator:GetPoints()*0.05, -1)
 			if DownPoints >= activator:GetPoints() then

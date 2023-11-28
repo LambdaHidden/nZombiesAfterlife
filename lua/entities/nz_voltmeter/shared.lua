@@ -42,6 +42,7 @@ function ENT:AcceptInput(inputName, activator, caller, data)
 	end
 end
 function ENT:KeyValue(k, v)
+	print(self, k, v)
 	if (string.Left(k, 2) == "On") then
 		self:StoreOutput(k, v)
 		table.insert(self.Outputs, {key = k, value = v})
@@ -70,7 +71,7 @@ function ENT:TurnOn(activator)
 	self:EmitSound("motd/afterlife/after_panel_on.ogg")
 	self:SetSkin(1)
 	
-	self:TriggerOutput("OnActivate", activator)
+	if SERVER then self:TriggerOutput("OnActivate", activator) end
 end
 
 function ENT:TurnOff(activator)
@@ -81,7 +82,7 @@ function ENT:TurnOff(activator)
 	self:ResetSequence(sequence)
 	self:SetSkin(0)
 	
-	if !nzElec.IsOn() then
+	if SERVER and !nzElec.IsOn() then
 		self:TriggerOutput("OnDeactivate", activator)
 	end
 end
