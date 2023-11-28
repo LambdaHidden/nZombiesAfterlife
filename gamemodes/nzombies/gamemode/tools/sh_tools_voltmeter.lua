@@ -16,9 +16,9 @@ nzTools:CreateTool("voltmeter", {
 			}
 			
 			local name = v.name
-			PrintTable(orderedoutputs)
-			local concat = table.concat(orderedoutputs, ":")
-			print(concat)
+			--PrintTable(orderedoutputs)
+			local concat = table.concat(orderedoutputs, ",")
+			--print(concat)
 			table.insert(actualoutputs, {key = name, value = concat})
 		end
 	
@@ -32,6 +32,7 @@ nzTools:CreateTool("voltmeter", {
 				tr.Entity:SetKeyValue(v.key, v.value)
 			end
 		else
+			--PrintTable(actualoutputs)
 			ent = nzMapping:Voltmeter(tr.HitPos, Angle(0,(tr.HitPos - ply:GetPos()):Angle()[2],0)+Angle(0,180,0), data.targetname, actualoutputs, ply)
 		end
 	end,
@@ -109,39 +110,57 @@ nzTools:CreateTool("voltmeter", {
 				name:AddChoice( "OnActivate", "OnActivate" )
 				name:AddChoice( "OnDeactivate", "OnDeactivate" )
 				name:SetValue(v.name)
-				name.DataChanged = function( _, val ) v.name = val end
+				name.DataChanged = function( _, val ) 
+					v.name = val
+					DProperties.UpdateData()
+				end
 				
 				local target = Host:CreateRow( "Output "..k, "Target" )
 				target.host = k
 				target:Setup( "Generic" )
 				target:SetValue(v.target)
-				target.DataChanged = function( _, val ) v.target = val end
+				target.DataChanged = function( _, val ) 
+					v.target = val
+					DProperties.UpdateData()
+				end
 				
 				local action = Host:CreateRow( "Output "..k, "Action" )
 				action.host = k
 				action:Setup( "Generic" )
 				action:SetValue(v.action)
-				action.DataChanged = function( _, val ) v.action = val end
+				action.DataChanged = function( _, val ) 
+					v.action = val
+					DProperties.UpdateData()
+				end
 				
 				local parameter = Host:CreateRow( "Output "..k, "Parameter" )
 				parameter.host = k
 				parameter:Setup( "Generic" )
 				parameter:SetValue(v.parameter)
-				parameter.DataChanged = function( _, val ) v.parameter = val end
+				parameter.DataChanged = function( _, val ) 
+					v.parameter = val
+					DProperties.UpdateData()
+				end
 				
 				local delay = Host:CreateRow( "Output "..k, "Delay" )
 				delay.host = k
 				delay:Setup( "Float" )
 				delay:SetValue(0)
 				delay:SetValue(v.delay)
-				delay.DataChanged = function( _, val ) v.delay = val end
+				delay.DataChanged = function( _, val ) 
+					v.delay = val
+					DProperties.UpdateData()
+				end
 				
 				local refires = Host:CreateRow( "Output "..k, "Refires" )
 				refires.host = k
 				refires:Setup( "Int" )
 				refires:SetValue(-1)
 				refires:SetValue(v.refires)
-				refires.DataChanged = function( _, val ) v.refires = val end
+				refires.DataChanged = function( _, val ) 
+					v.refires = val
+					DProperties.UpdateData()
+				end
 				
 				local delete = Host:CreateRow( "Output "..k, "Delete" )
 				delete:Setup( "Generic" )
@@ -155,6 +174,7 @@ nzTools:CreateTool("voltmeter", {
 					if table.Count(valz["Outputs"]) == 1 then return end
 					table.remove(valz["Outputs"], delete1.host)
 					RefreshOutputList()
+					DProperties.UpdateData()
 				end
 			end
 		end
@@ -183,7 +203,8 @@ nzTools:CreateTool("voltmeter", {
 		end
 		
 		function DProperties.UpdateData()
-			nzTools:SendData(data, "voltmeter")
+			local newdata = {targetname = valz["Name"], outputs = valz["Outputs"]}
+			nzTools:SendData(newdata, "voltmeter")
 		end
 		
 		return sheet
