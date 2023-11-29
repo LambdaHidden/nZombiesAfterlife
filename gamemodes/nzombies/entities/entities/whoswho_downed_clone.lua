@@ -87,6 +87,10 @@ function ENT:RevivePlayer()
 		-- Yeah no, Who's Who doesn't actually let you keep your clone's perks or weapons
 		ply:RemovePerks()
 		ply:StripWeapons()
+		if ply:GetNW2Bool("IsInAfterlife") then
+			ply:SetNW2Bool("IsInAfterlife", false)
+			ply:EmitSound("motd/afterlife/afterlife_end.ogg")
+		end
 		if IsValid(nzPowerUps.ActivePlayerPowerUps[ply]) then
 			if !nzPowerUps:IsPlayerPowerupActive(ply, "zombieblood") then
 				ply:SetTargetPriority(TARGET_PRIORITY_PLAYER)
@@ -100,19 +104,22 @@ function ENT:RevivePlayer()
 		for k,v in pairs(tbl) do
 			print("Giving "..tostring(ply).." a "..v.class)
 			local wep = ply:Give(v.class)
-			timer.Simple(0, function()
-				if v.ammo1 then
-					ply:SetAmmo(v.ammo1, wep:GetPrimaryAmmoType())
-					ply:SetAmmo(v.ammo2, wep:GetSecondaryAmmoType())
-					hasammodata = true
+			if v.ammo1 != nil then
+				ply:SetAmmo(v.ammo1, wep:GetPrimaryAmmoType())
+				ply:SetAmmo(v.ammo2, wep:GetSecondaryAmmoType())
+				wep:SetClip1(v.clip1)
+				wep:SetClip2(v.clip2)
+				hasammodata = true
+			end
+			if v.pap then
+				if wep.OnPaP then
+					wep:OnPaP()
+					continue
 				end
-				if v.pap then
-					if IsValid(wep) then
-						wep:ApplyNZModifier("pap")
-					end
-				end
-			end)
+				wep:ApplyNZModifier("pap")
+			end
 		end
+		if !hasammodata then ply:GiveMaxAmmo() end
 		
 		if ply:GetNW2Bool("HasDiedFromSwitchbox") or !ply:GetNW2Bool("IsInAfterlife") then
 			for k,v in pairs(self.OwnerData.perks) do
@@ -120,11 +127,7 @@ function ENT:RevivePlayer()
 					ply:GivePerk(v)
 				end
 			end
-		end
-		if !hasammodata then ply:GiveMaxAmmo() end
-		
-		if ply:GetNW2Bool("IsInAfterlife") then
-			ply:EmitSound("motd/afterlife/afterlife_end.ogg")
+			ply:SetNW2Bool("HasDiedFromSwitchbox", false)
 		end
 	end
 	
@@ -149,7 +152,7 @@ function ENT:StartRevive(revivor, nosync)
 	local id = self:EntIndex()
 	if !nzRevive.Players[id] then return end -- Not even downed
 	if nzRevive.Players[id].ReviveTime then return end -- Already being revived
-		
+	
 	nzRevive.Players[id].ReviveTime = CurTime()
 	nzRevive.Players[id].RevivePlayer = revivor
 	revivor.Reviving = self

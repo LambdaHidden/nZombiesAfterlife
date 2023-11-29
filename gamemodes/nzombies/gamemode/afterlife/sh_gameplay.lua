@@ -80,7 +80,7 @@ function nzAfterlife:CreateAfterlifeClone(ply, pos)
 	who:SetModel(ply:GetModel())
 	
 	local weps = {}
-	if ply:GetNW2Bool("DiedFromShockbox") then
+	if ply:GetNW2Bool("HasDiedFromSwitchbox") then
 		who.OwnerData.perks = ply.OldPerks or ply:GetPerks()
 		for k,v in pairs(ply:GetWeapons()) do
 			local temp = {

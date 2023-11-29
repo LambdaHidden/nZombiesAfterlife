@@ -75,12 +75,16 @@ function SWEP:Deploy()
 end
 
 function SWEP:Holster(nextwep)
-	if nextwep:GetClass() == "nz_revive_morphine" then
+	local own = self:GetOwner()
+	--[[if nextwep:GetClass() == "nz_revive_morphine" then
+		nextwep.WepOwner = own
+		own:SetActiveWeapon("weapon_afterlife")
 		self:SetStatus(STATUS_REVIVE)
 		self:SendWeaponAnim(ACT_VM_RELOAD)
+		self:EmitSound("motd/afterlife/afterlife_revive_loop.wav")
 		self:SetNextIdle(CurTime() + 5)
 		return false
-	end
+	end]]
 	self:OnRemove()
 	return true
 end
@@ -214,6 +218,7 @@ function SWEP:GiveAbilities(giveorstrip)
 	if giveorstrip then
 		self.BackupWalkSpeed = own:GetWalkSpeed()
 		self.BackupRunSpeed = own:GetRunSpeed()
+		--self.BackupMaxSpeed = own:GetMaxSpeed()
 		
 		--own:SetAfterlifeJumpStamina(2)
 		--own:SetInAfterlife(true)
@@ -222,6 +227,7 @@ function SWEP:GiveAbilities(giveorstrip)
 		own:SetGravity(0.5)
 		own:SetWalkSpeed(320)
 		own:SetRunSpeed(500)
+		if own.SetMaxRunSpeed then own:SetMaxRunSpeed(500) end
 		
 		--own:SetColor(color_invisible)
 		--own:SetRenderMode(RENDERMODE_TRANSALPHA)
@@ -251,6 +257,7 @@ function SWEP:GiveAbilities(giveorstrip)
 		if self.BackupWalkSpeed then
 			own:SetWalkSpeed(self.BackupWalkSpeed)
 			own:SetRunSpeed(self.BackupRunSpeed)
+			if own.SetMaxRunSpeed then own:SetMaxRunSpeed(self.BackupRunSpeed) end
 		end
 		
 		own:StopParticles()

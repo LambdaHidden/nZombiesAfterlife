@@ -28,7 +28,7 @@ function ENT:Use(activator, caller)
 			
 			activator:TakeDamage(500)
 			--activator:SetDiedFromShockBox(true)
-			activator:SetNW2Bool("DiedFromShockbox", true)
+			activator:SetNW2Bool("HasDiedFromSwitchbox", true)
 			self:EmitSound("motd/afterlife/box_activate/box_activate_0"..math.random(0,1)..".ogg")
 			activator:GivePoints(DownPoints)
 		end
