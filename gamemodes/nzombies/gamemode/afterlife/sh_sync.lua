@@ -25,12 +25,13 @@ if SERVER then
 		net.Broadcast()
 	end
 	
-	hook.Add("PlayerInitialSpawn", "AfterlifeSyncNewPlayers" function(ply, transition)
+	gameevent.Listen( "player_activate" )
+	hook.Add( "player_activate", "AfterlifeSyncNewPlayers", function(data) 
 		net.Start("nzAfterlifeUpdateSettings")
 			net.WriteBool(nzAfterlife.Enabled)
 			net.WriteUInt(nzAfterlife.MaxLives.Singleplayer, 8)
 			net.WriteUInt(nzAfterlife.MaxLives.Multiplayer, 7)
-		net.Send(ply)
+		net.Send(Player(data.userid))
 	end)
 end
 

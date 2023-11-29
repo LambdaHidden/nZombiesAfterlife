@@ -1,20 +1,4 @@
-if !nzMapping then -- Load nzMapping if it wasn't yet, because everything here is built on top of that.
-	local mappingfiles,_ = file.Find("nzombies/gamemode/mapping/*", "LUA")
-	
-	for k, v in pairs(mappingfiles) do
-		local sep = string.Explode("_", v)
-		if sep[1] == "sh" then
-			if SERVER then
-				AddCSLuaFile("nzombies/gamemode/mapping/"..v)
-				include("nzombies/gamemode/mapping/"..v)
-			else
-				include("nzombies/gamemode/mapping/"..v)
-			end
-		elseif sep[1] == "sv" then
-			if SERVER then include("nzombies/gamemode/mapping/"..v) end
-		end
-	end
-end
+hook.Add("PostGamemodeLoaded", "AfterlifeMappingLoadOrder", function()
 
 nzMapping:AddSaveModule("Voltmeters", {
 	savefunc = function()
@@ -122,3 +106,5 @@ nzMapping:AddSaveModule("AfterlifeSettings", {
 		nzAfterlife:UpdateSettings(data.enabled, data.maxsingle, data.maxmulti)
 	end,
 })
+
+end)

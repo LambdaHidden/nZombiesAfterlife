@@ -74,7 +74,13 @@ function SWEP:Deploy()
 	return true
 end
 
-function SWEP:Holster()
+function SWEP:Holster(nextwep)
+	if nextwep:GetClass() == "nz_revive_morphine" then
+		self:SetStatus(STATUS_REVIVE)
+		self:SendWeaponAnim(ACT_VM_RELOAD)
+		self:SetNextIdle(CurTime() + 5)
+		return false
+	end
 	self:OnRemove()
 	return true
 end
@@ -287,6 +293,10 @@ function SWEP:Think()
 			self:SetStatus(STATUS_SPRINT)
 		end
 		self:SetNextIdle(ct + 0.1)
+	end
+	
+	if own:KeyReleased(IN_USE) and self:GetStatus() == STATUS_REVIVE then
+		self:SetNextIdle(CurTime())
 	end
 	
 	if own:OnGround() and SERVER then
