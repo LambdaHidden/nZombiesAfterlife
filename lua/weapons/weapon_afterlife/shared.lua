@@ -153,8 +153,13 @@ end
 
 AfterlifeVisEnts = {}
 
+local function invisfunc(self)
+	return
+end
+
 hook.Add("EntityKeyValue", "AfterlifeVisibilityPrecache", function(ent, k, v) 
 	if k == "AfterlifeVis" then
+		print("EntityKeyValue", ent, v)
 		ent:SetCustomCollisionCheck(true)
 		ent:SetAfterlifeVis(tonumber(v))
 		
@@ -169,6 +174,7 @@ end)
 hook.Add("InitPostEntity", "World_AfterlifeSyncVisEnts", function()
 	if SERVER then
 		for key, value in pairs(AfterlifeVisEnts) do
+			print("InitPostEntity", key, value)
 			net.Start("AfterlifeVis")
 				net.WriteUInt(key, 14)
 				net.WriteUInt(value, 2)
@@ -177,25 +183,32 @@ hook.Add("InitPostEntity", "World_AfterlifeSyncVisEnts", function()
 	end
 end)
 
-hook.Add("PlayerInitialSpawn", "Player_AfterlifeSyncVisEnts", function(ply, transition)
-	for key, value in pairs(AfterlifeVisEnts) do
-		net.Start("AfterlifeVis")
-			net.WriteUInt(key, 14)
-			net.WriteUInt(value, 2)
-		net.Send(ply)
+gameevent.Listen( "player_activate" )
+hook.Add("player_activate", "Player_AfterlifeSyncVisEnts", function(data)
+	local ply = Player(data.userid)
+	if SERVER then
+		for key, value in pairs(AfterlifeVisEnts) do
+			print("player_activate", key, value)
+			net.Start("AfterlifeVis")
+				net.WriteUInt(key, 14)
+				net.WriteUInt(value, 2)
+			net.Send(ply)
+		end
 	end
 end)
 
 hook.Add("NotifyShouldTransmit", "AfterlifeSyncVisEnts", function(entity, shouldtransmit)
-	if AfterlifeVisEnts[entity:EntIndex()] then
+	if AfterlifeVisEnts[entity:EntIndex()] != nil then
 		local determiner = AfterlifeVisEnts[entity:EntIndex()]
 		
-		if LocalPlayer():GetInAfterlife() then determiner = determiner - 1 end
+		if LocalPlayer():GetNW2Bool("IsInAfterlife") then determiner = determiner - 1 end
 		
 		if determiner == 1 then
 			entity:AddEffects(EF_NODRAW)
+			--entity.RenderOverride = invisfunc
 		else
 			entity:RemoveEffects(EF_NODRAW)
+			--entity.RenderOverride = nil
 		end
 	end
 end)
@@ -207,9 +220,14 @@ net.Receive("AfterlifeVis", function(length, ply)
 	AfterlifeVisEnts[enti] = v
 	
 	local ent = Entity(enti)
-	--if !LocalPlayer():GetInAfterlife() and v == 1 and IsValid(ent) then
-	if !LocalPlayer():GetNW2Bool("IsInAfterlife") and v == 1 and IsValid(ent) then
-		ent:AddEffects(EF_NODRAW)
+	
+	if v == 1 and IsValid(ent) then
+		--ent.RenderOverride = !LocalPlayer():GetNW2Bool("IsInAfterlife") and invisfunc or nil
+		if LocalPlayer():GetNW2Bool("IsInAfterlife") then
+			ent:RemoveEffects(EF_NODRAW)
+		else
+			ent:AddEffects(EF_NODRAW)
+		end
 	end
 end)
 
@@ -219,7 +237,6 @@ function SWEP:GiveAbilities(giveorstrip)
 	if !IsValid(own) then return end
 	
 	if giveorstrip then
-		--print("Giving abilities")
 		self.BackupWalkSpeed = own:GetWalkSpeed()
 		self.BackupRunSpeed = own:GetRunSpeed()
 		
@@ -237,17 +254,19 @@ function SWEP:GiveAbilities(giveorstrip)
 				if !IsValid(ent) then continue end
 				if v == 2 then
 					ent:AddEffects(EF_NODRAW)
+					--ent.RenderOverride = invisfunc
 					continue
 				end
 				ent:RemoveEffects(EF_NODRAW)
+				--ent.RenderOverride = nil
 			end
 		end
 		
-		own:AddEffects(EF_NODRAW)
+		--own:AddEffects(EF_NODRAW)
+		own:SetRenderMode(RENDERMODE_NONE)
 		own:StopParticles()
 		ParticleEffectAttach("afterlife_playercloud", PATTACH_ABSORIGIN_FOLLOW, own, 0)
 	else
-		--print("Stripping abilities")
 		own:SetNW2Bool("IsInAfterlife", false)
 		own:SetGravity(1)
 		if self.BackupWalkSpeed then
@@ -257,7 +276,9 @@ function SWEP:GiveAbilities(giveorstrip)
 		end
 		
 		own:StopParticles()
-		own:RemoveEffects(EF_NODRAW)
+		--own.RenderOverride = nil
+		--own:RemoveEffects(EF_NODRAW)
+		own:SetRenderMode(RENDERMODE_NORMAL)
 		
 		if CLIENT then
 			for k, v in pairs(AfterlifeVisEnts) do
@@ -265,8 +286,10 @@ function SWEP:GiveAbilities(giveorstrip)
 				if !IsValid(ent) then continue end
 				if v == 2 then
 					ent:RemoveEffects(EF_NODRAW)
+					--ent.RenderOverride = nil
 					continue
 				end
+				--ent.RenderOverride = invisfunc
 				ent:AddEffects(EF_NODRAW)
 			end
 		end
