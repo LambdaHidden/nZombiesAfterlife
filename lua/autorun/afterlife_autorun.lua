@@ -35,11 +35,10 @@ local allowedguns = {
 	["nz_hellsredeemer"] = true
 }
 hook.Add("PlayerCanPickupWeapon", "AfterlifeWeaponRestrictions", function(ply, weapon)
-	--if ply:GetInAfterlife() then
 	if ply:GetNW2Bool("IsInAfterlife") then
 		if weapon:GetClass() == "nz_revive_morphine" then
 			weapon.WepOwner = ply
-			--ply:GetWeapon("weapon_afterlife"):Holster(weapon)
+			ply:GetWeapon("weapon_afterlife"):Holster(weapon)
 		end
 		return allowedguns[weapon:GetClass()] != nil
 	end

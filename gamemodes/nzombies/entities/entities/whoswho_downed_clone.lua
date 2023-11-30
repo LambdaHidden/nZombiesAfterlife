@@ -69,8 +69,7 @@ end
 
 function ENT:RevivePlayer()
 	local ply = self:GetPerkOwner()
-	print("My owner is "..tostring(self:GetPerkOwner()))
-	PrintTable(self.OwnerData)
+	--PrintTable(self.OwnerData)
 	
 	if (IsValid(ply) and ply:IsPlayer()) then
 		if ply:Alive() then
@@ -85,12 +84,13 @@ function ENT:RevivePlayer()
 		ply:SetEyeAngles(self:GetAngles())
 		
 		-- Yeah no, Who's Who doesn't actually let you keep your clone's perks or weapons
-		ply:RemovePerks()
-		ply:StripWeapons()
 		if ply:GetNW2Bool("IsInAfterlife") then
 			ply:SetNW2Bool("IsInAfterlife", false)
 			ply:EmitSound("motd/afterlife/afterlife_end.ogg")
 		end
+		ply:RemovePerks()
+		ply:StripWeapon("weapon_afterlife")
+		--ply:StripWeapons()
 		if IsValid(nzPowerUps.ActivePlayerPowerUps[ply]) then
 			if !nzPowerUps:IsPlayerPowerupActive(ply, "zombieblood") then
 				ply:SetTargetPriority(TARGET_PRIORITY_PLAYER)
@@ -102,7 +102,6 @@ function ENT:RevivePlayer()
 		local hasammodata = false
 		local tbl = self.OwnerData.weps or ply.OldWeps
 		for k,v in pairs(tbl) do
-			print("Giving "..tostring(ply).." a "..v.class)
 			local wep = ply:Give(v.class)
 			if v.ammo1 != nil then
 				ply:SetAmmo(v.ammo1, wep:GetPrimaryAmmoType())
@@ -178,7 +177,13 @@ function ENT:StopRevive(nosync)
 end
 
 function ENT:KillDownedPlayer()
-	self:Remove()
+	local ply = self:GetPerkOwner()
+	self:RevivePlayer()
+	
+	timer.Simple(0.1, function()
+		ply:SetNW2Int("Afterlives", 0)
+		ply:TakeDamage(ply:Health()+1)
+	end)
 end
 
 function ENT:OnRemove()

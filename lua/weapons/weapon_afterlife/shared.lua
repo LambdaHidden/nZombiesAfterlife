@@ -52,12 +52,12 @@ function SWEP:SetupDataTables()
 end
 
 function SWEP:Initialize()
-	local own = self:GetOwner()
 	self:SetHoldType(self.HoldType)
 end
 
 function SWEP:Deploy()
 	local own = self:GetOwner()
+	self.WepOwner = own
 	
 	self:SendWeaponAnim(ACT_VM_DRAW_DEPLOYED)
 	self:SetStatus(STATUS_DEPLOY)
@@ -76,17 +76,20 @@ end
 
 function SWEP:Holster(nextwep)
 	local own = self:GetOwner()
-	--[[if nextwep:GetClass() == "nz_revive_morphine" then
+	if nextwep and nextwep:GetClass() == "nz_revive_morphine" then
 		nextwep.WepOwner = own
-		own:SetActiveWeapon("weapon_afterlife")
-		self:SetStatus(STATUS_REVIVE)
-		self:SendWeaponAnim(ACT_VM_RELOAD)
-		self:EmitSound("motd/afterlife/afterlife_revive_loop.wav")
-		self:SetNextIdle(CurTime() + 5)
+		timer.Simple(0.1, function()
+			own:SetActiveWeapon("weapon_afterlife")
+			self:SetStatus(STATUS_REVIVE)
+			self:SendWeaponAnim(ACT_VM_RELOAD)
+			self:EmitSound("motd/afterlife/afterlife_revive_loop.wav")
+			self:SetNextIdle(CurTime() + 5)
+		end)
 		return false
-	end]]
-	self:OnRemove()
-	return true
+	else
+		self:OnRemove()
+		return true
+	end
 end
 
 local dontdamage = {
@@ -212,16 +215,15 @@ end)
 
 --local color_invisible = Color(255,255,255,0)
 function SWEP:GiveAbilities(giveorstrip)
-	local own = self:GetOwner()
+	local own = self.WepOwner or self:GetOwner()
 	if !IsValid(own) then return end
 	
 	if giveorstrip then
+		--print("Giving abilities")
 		self.BackupWalkSpeed = own:GetWalkSpeed()
 		self.BackupRunSpeed = own:GetRunSpeed()
-		--self.BackupMaxSpeed = own:GetMaxSpeed()
 		
-		--own:SetAfterlifeJumpStamina(2)
-		--own:SetInAfterlife(true)
+		
 		own:SetNW2Float("AfterlifeHoverStamina", 2.0)
 		own:SetNW2Bool("IsInAfterlife", true)
 		own:SetGravity(0.5)
@@ -237,13 +239,9 @@ function SWEP:GiveAbilities(giveorstrip)
 				if !IsValid(ent) then continue end
 				if v == 2 then
 					ent:AddEffects(EF_NODRAW)
-					--ent:SetRenderMode(RENDERMODE_TRANSALPHA)
-					--ent:SetColor(color_invisible)
 					continue
 				end
 				ent:RemoveEffects(EF_NODRAW)
-				--ent:SetRenderMode(RENDERMODE_NORMAL)
-				--ent:SetColor(color_white)
 			end
 		end
 		
@@ -251,7 +249,7 @@ function SWEP:GiveAbilities(giveorstrip)
 		own:StopParticles()
 		ParticleEffectAttach("afterlife_playercloud", PATTACH_ABSORIGIN_FOLLOW, own, 0)
 	else
-		--own:SetInAfterlife(false)
+		--print("Stripping abilities")
 		own:SetNW2Bool("IsInAfterlife", false)
 		own:SetGravity(1)
 		if self.BackupWalkSpeed then
@@ -269,17 +267,11 @@ function SWEP:GiveAbilities(giveorstrip)
 				if !IsValid(ent) then continue end
 				if v == 2 then
 					ent:RemoveEffects(EF_NODRAW)
-					--ent:SetRenderMode(RENDERMODE_NORMAL)
-					--ent:SetColor(color_white)
 					continue
 				end
 				ent:AddEffects(EF_NODRAW)
-				--ent:SetRenderMode(RENDERMODE_TRANSALPHA)
-				--ent:SetColor(color_invisible)
 			end
 		end
-		--own:SetColor(color_white)
-		--own:SetRenderMode(RENDERMODE_NORMAL)
 	end
 end
 
@@ -293,7 +285,6 @@ function SWEP:Think()
 		self:SetStatus(STATUS_IDLE)
 	end
 	
-	--local ownvel = own:GetVelocity()
 	if own:IsSprinting() then
 		if self:GetStatus() != STATUS_SPRINT then --(ownvel.x + ownvel.y) > own:GetWalkSpeed()
 			self:SendWeaponAnim(ACT_VM_SPRINT_IDLE)
@@ -307,15 +298,15 @@ function SWEP:Think()
 	end
 	
 	if own:OnGround() and SERVER then
-		--own:SetAfterlifeJumpStamina(math.Clamp(own:GetAfterlifeJumpStamina() + 0.1, 0, 2))
 		own:SetNW2Float("AfterlifeHoverStamina", math.Clamp(own:GetNW2Float("AfterlifeHoverStamina") + 0.1, 0, 2))
 	end
 end
 
 function SWEP:OnRemove()
-	local own = self:GetOwner()
-	if IsValid(own) then
+	--print("OnRemove")
+	if IsValid(self.WepOwner) then
+		--print("WepOwner is valid")
 		self:GiveAbilities(false)
-		own:StopSound("motd/afterlife/afterlife_loop.wav")
+		self.WepOwner:StopSound("motd/afterlife/afterlife_loop.wav")
 	end
 end
