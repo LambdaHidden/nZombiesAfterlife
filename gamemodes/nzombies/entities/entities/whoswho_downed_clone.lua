@@ -85,7 +85,7 @@ function ENT:RevivePlayer()
 		
 		-- Yeah no, Who's Who doesn't actually let you keep your clone's perks or weapons
 		if ply:GetNW2Bool("IsInAfterlife") then
-			ply:SetNW2Bool("IsInAfterlife", false)
+			ply:GetWeapon("weapon_afterlife"):GiveAbilities(false)
 			ply:EmitSound("motd/afterlife/afterlife_end.ogg")
 		end
 		ply:RemovePerks()
@@ -120,7 +120,7 @@ function ENT:RevivePlayer()
 		end
 		if !hasammodata then ply:GiveMaxAmmo() end
 		
-		if ply:GetNW2Bool("HasDiedFromSwitchbox") or !ply:GetNW2Bool("IsInAfterlife") then
+		if ply:GetNW2Bool("HasDiedFromSwitchbox") or ply.WhosWhoClone then
 			for k,v in pairs(self.OwnerData.perks) do
 				if v != "whoswho" then
 					ply:GivePerk(v)

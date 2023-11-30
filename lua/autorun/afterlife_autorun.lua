@@ -48,18 +48,11 @@ local AfterlifeJumpAccel = 200
 local AfterlifeMaxJumpSpeed = 200
 local AfterlifeJumpDepletion = 1.25
 hook.Add("SetupMove", "AfterlifeSetupMove", function(ply, mv, cmd)
-	--[[if ply:GetInAfterlife() then
-		if ply:GetAfterlifeJumpStamina() > 0 and cmd:KeyDown(IN_JUMP) then
-			local upspeed = math.Clamp(mv:GetUpSpeed() + (AfterlifeJumpAccel*engine.TickInterval()), -600, AfterlifeMaxJumpSpeed)
-			mv:SetUpSpeed(upspeed)
-			mv:SetVelocity(mv:GetVelocity() + vector_up*upspeed)
-			ply:SetAfterlifeJumpStamina( ply:GetAfterlifeJumpStamina() - (AfterlifeJumpDepletion * engine.TickInterval()) )
-		end
-	end]]
 	if ply:GetNW2Bool("IsInAfterlife") then
-		if ply:GetNW2Float("AfterlifeHoverStamina") > 0 and cmd:KeyDown(IN_JUMP) then
+		if cmd:KeyDown(IN_JUMP) and ply:GetNW2Float("AfterlifeHoverStamina") > 0 then
 			local upspeed = math.Clamp(mv:GetUpSpeed() + (AfterlifeJumpAccel*engine.TickInterval()), -600, AfterlifeMaxJumpSpeed)
 			mv:SetUpSpeed(upspeed)
+			cmd:SetUpMove(upspeed)
 			mv:SetVelocity(mv:GetVelocity() + vector_up*upspeed)
 			ply:SetNW2Float( "AfterlifeHoverStamina", ply:GetNW2Float("AfterlifeHoverStamina") - (AfterlifeJumpDepletion * engine.TickInterval()) )
 		end

@@ -211,7 +211,6 @@ end
 end)
 
 hook.Add("GetFallDamage", "Afterlife_Falldmg", function(ply, speed)
-	--print(speed)
 	if ply:GetNW2Bool("IsInAfterlife") then
 		return 0
 	end

@@ -231,8 +231,6 @@ function SWEP:GiveAbilities(giveorstrip)
 		own:SetRunSpeed(500)
 		if own.SetMaxRunSpeed then own:SetMaxRunSpeed(500) end
 		
-		--own:SetColor(color_invisible)
-		--own:SetRenderMode(RENDERMODE_TRANSALPHA)
 		if CLIENT then
 			for k, v in pairs(AfterlifeVisEnts) do
 				local ent = Entity(k)
@@ -303,9 +301,7 @@ function SWEP:Think()
 end
 
 function SWEP:OnRemove()
-	--print("OnRemove")
 	if IsValid(self.WepOwner) then
-		--print("WepOwner is valid")
 		self:GiveAbilities(false)
 		self.WepOwner:StopSound("motd/afterlife/afterlife_loop.wav")
 	end
