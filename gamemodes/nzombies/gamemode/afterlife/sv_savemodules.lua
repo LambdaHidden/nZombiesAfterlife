@@ -20,7 +20,7 @@ nzMapping:AddSaveModule("Voltmeters", {
 	end,
 	postrestorefunc = function(data)
 		for k,v in pairs(ents.FindByClass("nz_voltmeter")) do
-			v:ResetVoltmeter()
+			v:TurnOff()
 		end
 	end,
 	cleanents = {"nz_voltmeter"}
