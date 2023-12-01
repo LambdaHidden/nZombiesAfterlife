@@ -55,9 +55,12 @@ function SWEP:Initialize()
 	self:SetHoldType(self.HoldType)
 end
 
+function SWEP:Equip()
+	self.WepOwner = self:GetOwner()
+end
+
 function SWEP:Deploy()
 	local own = self:GetOwner()
-	self.WepOwner = own
 	
 	self:SendWeaponAnim(ACT_VM_DRAW_DEPLOYED)
 	self:SetStatus(STATUS_DEPLOY)
@@ -153,13 +156,12 @@ end
 
 AfterlifeVisEnts = {}
 
-local function invisfunc(self)
+--[[local function invisfunc(self)
 	return
-end
+end]]
 
 hook.Add("EntityKeyValue", "AfterlifeVisibilityPrecache", function(ent, k, v) 
 	if k == "AfterlifeVis" then
-		print("EntityKeyValue", ent, v)
 		ent:SetCustomCollisionCheck(true)
 		ent:SetAfterlifeVis(tonumber(v))
 		
@@ -174,7 +176,6 @@ end)
 hook.Add("InitPostEntity", "World_AfterlifeSyncVisEnts", function()
 	if SERVER then
 		for key, value in pairs(AfterlifeVisEnts) do
-			print("InitPostEntity", key, value)
 			net.Start("AfterlifeVis")
 				net.WriteUInt(key, 14)
 				net.WriteUInt(value, 2)
@@ -188,7 +189,6 @@ hook.Add("player_activate", "Player_AfterlifeSyncVisEnts", function(data)
 	local ply = Player(data.userid)
 	if SERVER then
 		for key, value in pairs(AfterlifeVisEnts) do
-			print("player_activate", key, value)
 			net.Start("AfterlifeVis")
 				net.WriteUInt(key, 14)
 				net.WriteUInt(value, 2)
@@ -233,6 +233,7 @@ end)
 
 --local color_invisible = Color(255,255,255,0)
 function SWEP:GiveAbilities(giveorstrip)
+	giveorstrip = tobool(giveorstrip)
 	local own = self.WepOwner or self:GetOwner()
 	if !IsValid(own) then return end
 	
@@ -326,6 +327,9 @@ end
 function SWEP:OnRemove()
 	if IsValid(self.WepOwner) then
 		self:GiveAbilities(false)
+		if game.SinglePlayer() then
+			self:CallOnClient("GiveAbilities", "false")
+		end
 		self.WepOwner:StopSound("motd/afterlife/afterlife_loop.wav")
 	end
 end
