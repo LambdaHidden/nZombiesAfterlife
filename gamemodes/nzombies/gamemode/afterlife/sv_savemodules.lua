@@ -8,7 +8,7 @@ nzMapping:AddSaveModule("Voltmeters", {
 				pos = v:GetPos(),
 				angle = v:GetAngles(),
 				targetname = v:GetName(),
-				outputs = v:GetOutputs()
+				outputs = v:GetOutputs(false)
 			})
 		end
 		return voltmeter
@@ -33,9 +33,10 @@ function nzMapping:Voltmeter(pos, ang, name, outputs, ply)
 	entry:Spawn()
 	entry:PhysicsInit(SOLID_VPHYSICS)
 	entry:SetName(name)
+	entry:SetTargetname(name)
+	
+	PrintTable(outputs)
 	for k, v in pairs(outputs) do
-		--entry:StoreOutput(v.key, v.value)
-		--table.insert(entry.Outputs, v)
 		entry:SetKeyValue(v.key, v.value)
 	end
 

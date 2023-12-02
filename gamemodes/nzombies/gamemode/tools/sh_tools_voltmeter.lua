@@ -16,23 +16,20 @@ nzTools:CreateTool("voltmeter", {
 			}
 			
 			local name = v.name
-			--PrintTable(orderedoutputs)
 			local concat = table.concat(orderedoutputs, ",")
-			--print(concat)
 			table.insert(actualoutputs, {key = name, value = concat})
 		end
 	
 		if IsValid(tr.Entity) and tr.Entity:GetClass() == "nz_voltmeter" then
 			tr.Entity:SetName(data.targetname)
+			tr.Entity:SetTargetname(data.targetname)
 			tr.Entity:ClearAllOutputs()
 			
+			table.Empty(tr.Entity.Outputs)
 			for k, v in pairs(actualoutputs) do
-				--tr.Entity:StoreOutput(v.key, v.value)
-				--table.insert(tr.Entity.Outputs, v)
 				tr.Entity:SetKeyValue(v.key, v.value)
 			end
 		else
-			--PrintTable(actualoutputs)
 			ent = nzMapping:Voltmeter(tr.HitPos, Angle(0,(tr.HitPos - ply:GetPos()):Angle()[2],0)+Angle(0,180,0), data.targetname, actualoutputs, ply)
 		end
 	end,
@@ -195,6 +192,10 @@ nzTools:CreateTool("voltmeter", {
 			add:DoClick()
 		end
 		
+		function sheet.CompileData()
+			return data
+		end
+		
 		function DProperties.UpdateData()
 			local newdata = {targetname = valz["Name"], outputs = valz["Outputs"]}
 			nzTools:SendData(newdata, "voltmeter")
@@ -218,5 +219,5 @@ nzTools:EnableProperties("voltmeter", "Edit Voltmeter...", "icon16/tag_blue_edit
 	return true
 
 end, function(ent)
-	return {targetname = ent:GetName(), outputs = ent:GetOutputs()}
+	return {targetname = ent:GetTargetname(), outputs = ent:GetOutputs(true)}
 end)

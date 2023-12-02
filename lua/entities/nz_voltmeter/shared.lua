@@ -15,12 +15,54 @@ ENT.ValidInputs = {
 	Kill = true
 }]]
 ENT.Outputs = {}
-function ENT:GetOutputs()
-	return self.Outputs
+function ENT:GetOutputs(pretty)
+	if CLIENT then
+		net.Start("Afterlife_NWOutputs")
+			net.WriteUInt(self:EntIndex(), 14)
+		net.SendToServer()
+	end
+	if pretty then
+		local sanitized = {}
+		for k, v in pairs(self.Outputs) do
+			local args = string.Explode(",", v.value)
+			table.insert(sanitized, {name = v.key, target = args[1], action = args[2], parameter = args[3], delay = args[4], refires = args[5]})
+		end
+		return sanitized
+	else
+		return self.Outputs
+	end
 end
+
+net.Receive("Afterlife_NWOutputs", function(length)
+	local enti = net.ReadUInt(14)
+	local ent = Entity(enti)
+	
+	if !IsValid(ent) then return end
+	if SERVER then
+		net.Start("Afterlife_NWOutputs")
+			net.WriteUInt(enti, 14)
+			net.WriteString("purge")
+		net.Broadcast()
+		for k, v in pairs(ent.Outputs) do
+			net.Start("Afterlife_NWOutputs")
+				net.WriteUInt(enti, 14)
+				net.WriteString(v.key.." "..v.value)
+			net.Broadcast()
+		end
+	elseif CLIENT then
+		local kv = net.ReadString()
+		if kv == "purge" then
+			table.Empty(ent.Outputs)
+			return
+		end
+		local args = string.Explode(" ", kv)
+		table.insert(ent.Outputs, {key = args[1], value = args[2]})
+	end
+end)
 
 function ENT:SetupDataTables()
 	self:NetworkVar("Bool", 0, "Active")
+	self:NetworkVar("String", 0, "Targetname")
 end
 
 function ENT:Initialize()
@@ -30,8 +72,6 @@ function ENT:Initialize()
 	self:SetSolid(SOLID_VPHYSICS)
 	--self:DrawShadow(false)
 	self:SetActive(false)
-	
-	--local phys = self:GetPhysicsObject()
 end
 
 function ENT:AcceptInput(inputName, activator, caller, data)
@@ -42,13 +82,13 @@ function ENT:AcceptInput(inputName, activator, caller, data)
 	end
 end
 function ENT:KeyValue(k, v)
-	print(self, k, v)
+	if k == "targetname" then self:SetTargetname(v) end
 	if (string.Left(k, 2) == "On") then
 		self:StoreOutput(k, v)
 		table.insert(self.Outputs, {key = k, value = v})
 	end
 end
-function ENT:AddOutput(input)
+function ENT:AddOutput(activator, input)
 	local args = string.Split(input, " ")
 
 	self:StoreOutput(args[1], args[2])

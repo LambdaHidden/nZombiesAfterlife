@@ -7,6 +7,7 @@ PrecacheParticleSystem("afterlife_hit")
 
 if SERVER then
 	util.AddNetworkString("AfterlifeVis")
+	util.AddNetworkString("Afterlife_NWOutputs")
 end
 --[[
 local plyMeta = FindMetaTable("Player")
