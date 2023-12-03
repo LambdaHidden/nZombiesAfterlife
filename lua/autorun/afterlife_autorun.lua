@@ -29,22 +29,6 @@ hook.Add("ShouldCollide", "AfterlifeCollision", function(ent1, ent2)
 	end
 end)
 
-local allowedguns = {
-	["weapon_afterlife"] = true,
-	["nz_revive_morphine"] = true,
-	["nz_hellsretriever"] = true,
-	["nz_hellsredeemer"] = true
-}
-hook.Add("PlayerCanPickupWeapon", "AfterlifeWeaponRestrictions", function(ply, weapon)
-	if ply:GetNW2Bool("IsInAfterlife") then
-		if weapon:GetClass() == "nz_revive_morphine" then
-			weapon.WepOwner = ply
-			ply:GetWeapon("weapon_afterlife"):Holster(weapon)
-		end
-		return allowedguns[weapon:GetClass()] != nil
-	end
-end)
-
 local AfterlifeJumpAccel = 200
 local AfterlifeMaxJumpSpeed = 200
 local AfterlifeJumpDepletion = 1.25

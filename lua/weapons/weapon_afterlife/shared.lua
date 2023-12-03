@@ -244,10 +244,13 @@ function SWEP:GiveAbilities(giveorstrip)
 		
 		own:SetNW2Float("AfterlifeHoverStamina", 2.0)
 		own:SetNW2Bool("IsInAfterlife", true)
+		if own.SetMaxRunSpeed then own:SetMaxRunSpeed(500) end
 		own:SetGravity(0.5)
 		own:SetWalkSpeed(320)
 		own:SetRunSpeed(500)
-		if own.SetMaxRunSpeed then own:SetMaxRunSpeed(500) end
+		timer.Simple(0.12, function() -- This is here because going into afterlife in nZombies sets your speed to 0 after ~0.11 secs for some reason.
+			own:SetRunSpeed(500)
+		end)
 		
 		if CLIENT then
 			for k, v in pairs(AfterlifeVisEnts) do

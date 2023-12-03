@@ -50,7 +50,7 @@ hook.Add("OnRoundStart", "GiveAfterlife", function(ply)
 end)
 
 hook.Add("PlayerDowned", "RespawnWithAfterlife", function(ply)
-	if ply:GetNW2Int("Afterlives") > 0 and !ply:HasPerk("whoswho") and !ply:HasPerk("revive") then -- Who's Who and Quick Revive would break this with their timers.
+	if ply:GetNW2Int("Afterlives") > 0 and !(ply.HasWhosWho) and !(ply.DownedWithSoloRevive) then -- Who's Who and Quick Revive would break this with their timers.
 		ply:EmitSound("motd/afterlife/afterlife_death.ogg")
 		timer.Simple(3, function() 
 			if IsValid(ply) and !ply:GetNotDowned() then -- Same Tombstone check as Who's Who.
@@ -191,6 +191,7 @@ function nzAfterlife:RespawnWithAfterlife(ply, pos)
 	ply:StripWeapons()
 	--player_manager.RunClass(ply, "Loadout") -- Rearm them
 	ply:Give("weapon_afterlife")
+	--ply:SetRunSpeed(500)
 	ply:SetTargetPriority(TARGET_PRIORITY_NONE)
 
 	if pos then ply:SetPos(pos) end
@@ -220,6 +221,36 @@ hook.Add("PlayerShouldTakeDamage", "Afterlife_Nodmg", function(ply, attacker)
 		return false
 	end
 end)
+
+
+nzAfterlife.AllowedGuns = {
+	["weapon_afterlife"] = true,
+	["nz_revive_morphine"] = true,
+	["nz_hellsretriever"] = true,
+	["nz_hellsredeemer"] = true
+}
+hook.Add("PlayerCanPickupWeapon", "AfterlifeWeaponRestrictions", function(ply, weapon)
+	if ply:GetNW2Bool("IsInAfterlife") then
+		if weapon:GetClass() == "nz_revive_morphine" then
+			weapon.WepOwner = ply
+			ply:GetWeapon("weapon_afterlife"):Holster(weapon)
+		end
+		return nzAfterlife.AllowedGuns[weapon:GetClass()] != nil
+	end
+end)
+
+nzAfterlife.AllowedEnts = {
+	["whoswho_downed_clone"] = true,
+	["player"] = true
+}
+hook.Add("PlayerUse", "AfterlifeUseRestrictions", function(ply, ent)
+	if ply:GetNW2Bool("IsInAfterlife") then
+		if !nzAfterlife.AllowedEnts[ent:GetClass()] and ent:GetAfterlifeVis() != 1 then
+			return false
+		end
+	end
+end)
+
 
 if CLIENT then
 	hook.Add("RenderScreenspaceEffects", "DrawAfterlifeOverlay", function()

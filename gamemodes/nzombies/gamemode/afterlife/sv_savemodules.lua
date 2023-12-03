@@ -35,7 +35,6 @@ function nzMapping:Voltmeter(pos, ang, name, outputs, ply)
 	entry:SetName(name)
 	entry:SetTargetname(name)
 	
-	PrintTable(outputs)
 	for k, v in pairs(outputs) do
 		entry:SetKeyValue(v.key, v.value)
 	end

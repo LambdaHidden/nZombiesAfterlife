@@ -30,7 +30,7 @@ function ENT:Use(activator, caller)
 			--activator:SetDiedFromShockBox(true)
 			activator:SetNW2Bool("HasDiedFromSwitchbox", true)
 			self:EmitSound("motd/afterlife/box_activate/box_activate_0"..math.random(0,1)..".ogg")
-			activator:GivePoints(DownPoints)
+			activator:GivePoints(activator.DownPoints or DownPoints)
 		end
 	end
 end
